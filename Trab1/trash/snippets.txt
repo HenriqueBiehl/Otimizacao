@@ -1,0 +1,35 @@
+ 	
+Checar a tabela de cidades, rotas, recursos e pacotes
+
+ 	printf(" n = %d\n m = %d\n k = %d\n q = %d\n p = %d\n", n, m, k , q, p);
+
+ 	for(int i = 0; i < m; i++){
+
+ 		printf(" %d %d %d ", routes[i].startPoint, routes[i].endPoint, routes[i].capacity);
+		for(int j = 0; j < k; j++){
+			printf("%d ", routes[i].resources[j]);
+		} 		
+		printf("\n");
+ 	}
+
+ 	for(int i = 0; i < q; i++){
+ 		printf(" %.2f ", packages[i].price);
+		for(int j = 0; j < k; j++){
+			printf("%d ", packages[i].resources[j]);
+		} 		
+		printf("\n");
+ 	}
+	printf("\n");
+
+Imprime as cidades e suas conexoes de entrada e saida
+
+	for(int i=0; i < n - 1; ++i){
+ 		printf("city: %d\n", cities[i].mainCityId);
+ 		printf("entrances:\n");
+ 		printCityList(cities[i].entrances);
+ 		printf("exits:\n");
+ 		printCityList(cities[i].exits);
+ 		printf("\n\n");
+ 	}
+
+
