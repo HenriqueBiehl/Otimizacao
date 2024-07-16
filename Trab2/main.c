@@ -248,7 +248,69 @@ void printLista(struct listaCandidatos_t *l){
 
 }
 
+int funcao_bound_professor(struct listaCandidatos_t *E, struct listaCandidatos_t *F, unsigned int l){
+    int possuiGrupo;
+    struct nodoLista_t *n;
+
+    for(int g = 1; g <= l; ++g){
+        
+        possuiGrupo = 0; 
+        n = E->inicio; 
+        
+        while(n != NULL && !possuiGrupo){
+            for(int i = 1; i < n->grupo[0]+1 && !possuiGrupo; ++i){
+                if(n->grupo[i] == g){
+                    possuiGrupo = 1;
+                }
+            }
+            n = n->prox;
+        }        
+
+        if(!possuiGrupo)
+            return E->tamanho + 1; 
+    }
+    
+    return 0;
+}
+
+
 void candidatos_branch_and_bound(struct listaCandidatos_t *C, struct listaCandidatos_t *S, unsigned int n, unsigned int l){
+        
+    if(temTodosOsGrupos(S,n)){
+        if(S->tamanho < melhorLista->tamanho){
+            struct listaCandidatos_t *aux; 
+            aux = melhorLista;
+            melhorLista = copiaLista(S);
+            destroiLista(aux);
+        }
+    }
+
+    struct nodoLista_t *x; 
+    struct listaCandidatos_t *c; 
+    int b; 
+
+    c = copiaLista(C); 
+    x = removePrimeiroElemento(c);
+    b = funcao_bound_professor(S, C, n);
+    while(x != NULL){
+        
+        if(b > melhorLista->tamanho){
+            destroiNodo(x);
+            destroiLista(c); 
+            return;
+        }
+        
+        insereElementoLista(S, x); 
+        candidatos_branch_and_bound(c, S, n, l+1);    
+        removeUltimoElementoLista(S);    
+        destroiNodo(x);
+        x = removePrimeiroElemento(c);
+    } 
+    destroiLista(c);
+}
+
+
+void candidatos_base(struct listaCandidatos_t *C, struct listaCandidatos_t *S, unsigned int n, unsigned int l){
         
     if(temTodosOsGrupos(S,n)){
         if(S->tamanho < melhorLista->tamanho){
@@ -345,6 +407,7 @@ int main(int argc, char const *argv[]){
     melhorLista = copiaLista(candidatos);
 
     candidatos_branch_and_bound(candidatos, selecionados, l, 0);
+    //candidatos_base(candidatos, selecionados, l, 0);
 
     printf("RESULTADO!!!!\n");
     printLista(melhorLista);
