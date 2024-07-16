@@ -273,6 +273,80 @@ int funcao_bound_professor(struct listaCandidatos_t *E, struct listaCandidatos_t
     return 0;
 }
 
+struct listaCandidatos_t *melhoresCandidatos(struct listaCandidatos_t *s, struct listaCandidatos_t *c, int n){
+    struct listaCandidatos_t *l;
+    struct nodoLista_t *nodo, *copia;
+    int possuiGrupo, grupoAchado; 
+
+    l = criaLista(); 
+
+    for(int g=1; g <= n; ++g){
+        
+        possuiGrupo = 0; 
+        nodo = s->inicio;
+        while(nodo != NULL && !possuiGrupo){
+            for(int i = 1; i < nodo->grupo[0]+1 && !possuiGrupo; ++i){
+                if(nodo->grupo[i] == g){
+                    possuiGrupo = 1;
+                }
+            }
+            nodo = nodo->prox;
+        }        
+
+        nodo = c->inicio; 
+        while(nodo != NULL && !possuiGrupo){
+
+            grupoAchado = 0; 
+            for(int i = 1; i < nodo->grupo[0]+1 && !grupoAchado; ++i){
+                if(nodo->grupo[i] == g){
+                    copia = copiaNodo(nodo);
+                    insereElementoLista(l, copia);
+                    grupoAchado = 1;
+                }
+            }
+            nodo = nodo->prox;
+        }     
+
+    }
+
+    return l;
+
+}
+
+void candidatos_optimal_options(struct listaCandidatos_t *C, struct listaCandidatos_t *S, unsigned int n, unsigned int l){
+        
+    if(temTodosOsGrupos(S,n)){
+        if(S->tamanho < melhorLista->tamanho){
+            struct listaCandidatos_t *aux; 
+            aux = melhorLista;
+            melhorLista = copiaLista(S);
+            destroiLista(aux);
+        }
+    }
+
+    struct nodoLista_t *x; 
+    struct listaCandidatos_t *c; 
+    int b; 
+
+    c = melhoresCandidatos(S, C,  n); 
+    x = removePrimeiroElemento(c);
+    b = funcao_bound_professor(S, C, n);
+    while(x != NULL){
+        
+        if(b > melhorLista->tamanho){
+            destroiNodo(x);
+            destroiLista(c); 
+            return;
+        }
+        
+        insereElementoLista(S, x); 
+        candidatos_optimal_options(c, S, n, l+1);    
+        removeUltimoElementoLista(S);    
+        destroiNodo(x);
+        x = removePrimeiroElemento(c);
+    } 
+    destroiLista(c);
+}
 
 void candidatos_branch_and_bound(struct listaCandidatos_t *C, struct listaCandidatos_t *S, unsigned int n, unsigned int l){
         
@@ -406,7 +480,8 @@ int main(int argc, char const *argv[]){
 
     melhorLista = copiaLista(candidatos);
 
-    candidatos_branch_and_bound(candidatos, selecionados, l, 0);
+    candidatos_optimal_options(candidatos, selecionados, l, 0);
+    //candidatos_branch_and_bound(candidatos, selecionados, l, 0);
     //candidatos_base(candidatos, selecionados, l, 0);
 
     printf("RESULTADO!!!!\n");
