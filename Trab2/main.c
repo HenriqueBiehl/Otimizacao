@@ -2,6 +2,7 @@
 #include <stdlib.h> 
 
 struct listaCandidatos_t *melhorLista; 
+unsigned int nodosAcessados; 
 
 struct nodoLista_t{
     unsigned int id; 
@@ -270,6 +271,35 @@ int funcao_bound_professor(struct listaCandidatos_t *E, struct listaCandidatos_t
             return E->tamanho + 1; 
     }
     
+    return E->tamanho;
+}
+
+int funcao_bound_aluno(struct listaCandidatos_t *E, struct listaCandidatos_t *F, unsigned int l){
+    int possuiGrupo;
+    int numeroGruposFaltando = 0;
+    struct nodoLista_t *n;
+
+    for(int g = 1; g <= l; ++g){
+        
+        possuiGrupo = 0; 
+        n = E->inicio; 
+        
+        while(n != NULL && !possuiGrupo){
+            for(int i = 1; i < n->grupo[0]+1 && !possuiGrupo; ++i){
+                if(n->grupo[i] == g){
+                    possuiGrupo = 1;
+                }
+            }
+            n = n->prox;
+        }        
+
+        if(!possuiGrupo)
+            numeroGruposFaltando++;
+    }
+    
+    if(numeroGruposFaltando > 0)
+            return E->tamanho + numeroGruposFaltando;
+
     return 0;
 }
 
@@ -313,7 +343,44 @@ struct listaCandidatos_t *melhoresCandidatos(struct listaCandidatos_t *s, struct
 
 }
 
-void candidatos_optimal_options(struct listaCandidatos_t *C, struct listaCandidatos_t *S, unsigned int n, unsigned int l){
+void candidatos_sem_viabilidade(struct listaCandidatos_t *C, struct listaCandidatos_t *S, unsigned int n, unsigned int l){
+    struct nodoLista_t *x; 
+    struct listaCandidatos_t *c; 
+    //int b; 
+
+    c = copiaLista(C); 
+    x = removePrimeiroElemento(c);
+    nodosAcessados++;
+    //b = funcao_bound_professor(S, C, n);
+    while(x != NULL){
+        
+        // if(b > melhorLista->tamanho){
+        //     destroiNodo(x);
+        //     destroiLista(c); 
+        //     return;
+        // }
+        
+        insereElementoLista(S, x); 
+        candidatos_sem_viabilidade(c, S, n, l+1);    
+        removeUltimoElementoLista(S);    
+        destroiNodo(x);
+        x = removePrimeiroElemento(c);
+        nodosAcessados++;
+
+    } 
+    destroiLista(c);
+
+    if(temTodosOsGrupos(S,n)){
+        if(S->tamanho < melhorLista->tamanho){
+            struct listaCandidatos_t *aux; 
+            aux = melhorLista;
+            melhorLista = copiaLista(S);
+            destroiLista(aux);
+        }
+    }
+}
+
+void candidatos_branch_and_bound_aluno(struct listaCandidatos_t *C, struct listaCandidatos_t *S, unsigned int n, unsigned int l){
         
     if(temTodosOsGrupos(S,n)){
         if(S->tamanho < melhorLista->tamanho){
@@ -328,22 +395,24 @@ void candidatos_optimal_options(struct listaCandidatos_t *C, struct listaCandida
     struct listaCandidatos_t *c; 
     int b; 
 
-    c = melhoresCandidatos(S, C,  n); 
+    c = copiaLista(C); 
     x = removePrimeiroElemento(c);
-    b = funcao_bound_professor(S, C, n);
+    nodosAcessados++;
+    b = funcao_bound_aluno(S, C, n);
     while(x != NULL){
         
-        if(b > melhorLista->tamanho){
+        if(b >= melhorLista->tamanho){
             destroiNodo(x);
             destroiLista(c); 
             return;
         }
         
         insereElementoLista(S, x); 
-        candidatos_optimal_options(c, S, n, l+1);    
+        candidatos_branch_and_bound_aluno(c, S, n, l+1);    
         removeUltimoElementoLista(S);    
         destroiNodo(x);
         x = removePrimeiroElemento(c);
+        nodosAcessados++;
     } 
     destroiLista(c);
 }
@@ -365,10 +434,11 @@ void candidatos_branch_and_bound(struct listaCandidatos_t *C, struct listaCandid
 
     c = copiaLista(C); 
     x = removePrimeiroElemento(c);
+    nodosAcessados++;
     b = funcao_bound_professor(S, C, n);
     while(x != NULL){
         
-        if(b > melhorLista->tamanho){
+        if(b >= melhorLista->tamanho){
             destroiNodo(x);
             destroiLista(c); 
             return;
@@ -379,6 +449,8 @@ void candidatos_branch_and_bound(struct listaCandidatos_t *C, struct listaCandid
         removeUltimoElementoLista(S);    
         destroiNodo(x);
         x = removePrimeiroElemento(c);
+        nodosAcessados++;
+
     } 
     destroiLista(c);
 }
@@ -393,6 +465,8 @@ void candidatos_base(struct listaCandidatos_t *C, struct listaCandidatos_t *S, u
             melhorLista = copiaLista(S);
             destroiLista(aux);
         }
+        else
+            return;
     }
 
     struct nodoLista_t *x; 
@@ -400,12 +474,15 @@ void candidatos_base(struct listaCandidatos_t *C, struct listaCandidatos_t *S, u
 
     c = copiaLista(C); 
     x = removePrimeiroElemento(c);
+    nodosAcessados++;
+
     while(x != NULL){
         insereElementoLista(S, x); 
-        candidatos_branch_and_bound(c, S, n, l+1);    
+        candidatos_base(c, S, n, l+1);    
         removeUltimoElementoLista(S);    
         destroiNodo(x);
         x = removePrimeiroElemento(c);
+        nodosAcessados++;
     } 
     destroiLista(c);
 }
@@ -480,17 +557,49 @@ int main(int argc, char const *argv[]){
 
     melhorLista = copiaLista(candidatos);
 
-    candidatos_optimal_options(candidatos, selecionados, l, 0);
-    //candidatos_branch_and_bound(candidatos, selecionados, l, 0);
-    //candidatos_base(candidatos, selecionados, l, 0);
-
-    printf("RESULTADO!!!!\n");
+    nodosAcessados = 0;
+    candidatos_sem_viabilidade(candidatos, selecionados, l, 0);
+    destroiLista(selecionados);
+    selecionados = criaLista();
+    printf("RESULTADO SEM BOUND E VIABILIDADE\n");
     printLista(melhorLista);
-    printLista(selecionados);
+    printf("Nodos acessados: %d\n", nodosAcessados);
+    destroiLista(melhorLista);
+    melhorLista = copiaLista(candidatos);
+
+    printf("CANDIDATOS: \n");
+    printLista(melhorLista);
+    
+    nodosAcessados = 0;
+    candidatos_base(candidatos, selecionados, l, 0);
+    destroiLista(selecionados);
+    selecionados = criaLista();
+    printf("RESULTADO BOUND\n");
+    printLista(melhorLista);
+    printf("Nodos acessados: %d\n", nodosAcessados);
+    destroiLista(melhorLista);
+    melhorLista = copiaLista(candidatos);
+    
+    printf("CANDIDATOS: \n");
+    printLista(melhorLista);
+
+    nodosAcessados = 0;
+    candidatos_branch_and_bound(candidatos, selecionados, l, 0);
+    printf("RESULTADO BRANCH AND BOUND\n");
+    printLista(melhorLista);
+    printf("Nodos acessados: %d\n", nodosAcessados);
+    destroiLista(melhorLista);
+    melhorLista = copiaLista(candidatos);
+    
+    nodosAcessados = 0;
+    candidatos_branch_and_bound_aluno(candidatos, selecionados, l, 0);
+    destroiLista(selecionados);
+    printf("RESULTADO BRANCH AND BOUND ALUNO\n");
+    printLista(melhorLista);
+    printf("Nodos acessados: %d\n", nodosAcessados);
+    destroiLista(melhorLista);
 
     destroiLista(candidatos);
-    destroiLista(selecionados);
-    destroiLista(melhorLista);
 
     return 0;
 }
