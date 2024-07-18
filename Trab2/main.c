@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h> 
+#include <string.h>
 
 struct listaCandidatos_t *melhorLista; 
 unsigned int nodosAcessados; 
@@ -16,6 +17,8 @@ struct listaCandidatos_t{
     struct nodoLista_t *inicio; 
     struct nodoLista_t *fim;  
 };
+
+void printLista(struct listaCandidatos_t *l);
 
 struct nodoLista_t *criaNodo(unsigned int id, unsigned int *g){
     struct nodoLista_t *n; 
@@ -92,12 +95,17 @@ int insereElementoLista(struct listaCandidatos_t *l, struct nodoLista_t *n){
     struct nodoLista_t *aux, *anterior;
     unsigned int acheiMaximo = 0;
 
+    // printf("lista l em insere elemento lista\n");
+    // printLista(l);
+    // printf("nodo a ser inserido: %d\n", n->id);
+
     if(n == NULL)
         return 0;
 
     n->ant = NULL;
     n->prox = NULL;
 
+    /* Checa se n será inserido em uma lista vazia*/
     if(l->inicio == NULL){
         l->inicio = n; 
         l->fim    = n; 
@@ -109,20 +117,37 @@ int insereElementoLista(struct listaCandidatos_t *l, struct nodoLista_t *n){
     anterior = NULL;
 
     while(aux != NULL && !acheiMaximo){
-        if(aux->id <= n->id)
-            anterior = aux; 
+       
+        if(aux->id == n->id)
+            return 0;
+       
+        if(aux->id < n->id){
+            anterior = aux;             
+            aux = aux->prox; 
+
+        }
         else 
             acheiMaximo = 1;
-        aux = aux->prox; 
     }
 
     n->ant  = anterior;
-    n->prox = anterior->prox; 
-    anterior->prox = n;
-
-    if(n->prox == NULL){        
-        l->fim = n; 
+    
+    /* Checa se o elemento não deve ser inserido no inicio da lista em uma lista sem elementos*/
+    if(anterior == NULL){
+        l->inicio = n; 
+        aux->ant = n; 
+        n->prox = aux;
+        l->tamanho++;
+        return 1;
     }
+    else {
+        n->prox = anterior->prox; 
+        anterior->prox = n;
+    }
+
+    /* Checa se o elemento n é final na lista */
+    if(n->prox == NULL)        
+        l->fim = n; 
     else 
         anterior->prox->ant = n ;
 
@@ -277,7 +302,12 @@ int funcao_bound_professor(struct listaCandidatos_t *E, struct listaCandidatos_t
 int funcao_bound_aluno(struct listaCandidatos_t *E, struct listaCandidatos_t *F, unsigned int l){
     int possuiGrupo;
     int numeroGruposFaltando = 0;
+    int jaTenho = 0;
+    int grupos[l]; 
     struct nodoLista_t *n;
+
+    for(int i =0; i < l; ++i)
+        grupos[i] = 1;
 
     for(int g = 1; g <= l; ++g){
         
@@ -287,7 +317,9 @@ int funcao_bound_aluno(struct listaCandidatos_t *E, struct listaCandidatos_t *F,
         while(n != NULL && !possuiGrupo){
             for(int i = 1; i < n->grupo[0]+1 && !possuiGrupo; ++i){
                 if(n->grupo[i] == g){
+                    grupos[g-1] = 0; 
                     possuiGrupo = 1;
+                    jaTenho++;
                 }
             }
             n = n->prox;
@@ -296,11 +328,34 @@ int funcao_bound_aluno(struct listaCandidatos_t *E, struct listaCandidatos_t *F,
         if(!possuiGrupo)
             numeroGruposFaltando++;
     }
-    
-    if(numeroGruposFaltando > 0)
-            return E->tamanho + numeroGruposFaltando;
 
-    return 0;
+    if(numeroGruposFaltando == 0)
+        return E->tamanho;
+
+    int candidatosNecessarios = 0; 
+    int aux; 
+    n = F->inicio; 
+    while(n != NULL && jaTenho < l){
+
+        for(int i = 0; i < l; ++i){
+            
+            aux = jaTenho; 
+            candidatosNecessarios++; 
+
+            for(int j = 1; j < n->grupo[0]+1 && !grupos[i]; ++j){
+                if(n->grupo[j] == i+1){
+                    grupos[j-1] = 1;
+                    jaTenho++; 
+                }
+            }
+
+            if(aux == jaTenho)
+                candidatosNecessarios--;
+        }
+        n = n->prox; 
+    }
+    
+    return E->tamanho + candidatosNecessarios;
 }
 
 struct listaCandidatos_t *melhoresCandidatos(struct listaCandidatos_t *s, struct listaCandidatos_t *c, int n){
@@ -324,7 +379,7 @@ struct listaCandidatos_t *melhoresCandidatos(struct listaCandidatos_t *s, struct
         }        
 
         nodo = c->inicio; 
-        while(nodo != NULL && !possuiGrupo){
+        while(nodo != NULL){
 
             grupoAchado = 0; 
             for(int i = 1; i < nodo->grupo[0]+1 && !grupoAchado; ++i){
@@ -389,6 +444,8 @@ void candidatos_branch_and_bound_aluno(struct listaCandidatos_t *C, struct lista
             melhorLista = copiaLista(S);
             destroiLista(aux);
         }
+        else 
+            return;
     }
 
     struct nodoLista_t *x; 
@@ -426,6 +483,8 @@ void candidatos_branch_and_bound(struct listaCandidatos_t *C, struct listaCandid
             melhorLista = copiaLista(S);
             destroiLista(aux);
         }
+        else
+            return;
     }
 
     struct nodoLista_t *x; 
@@ -472,7 +531,7 @@ void candidatos_base(struct listaCandidatos_t *C, struct listaCandidatos_t *S, u
     struct nodoLista_t *x; 
     struct listaCandidatos_t *c; 
 
-    c = copiaLista(C); 
+    c = copiaLista(C);
     x = removePrimeiroElemento(c);
     nodosAcessados++;
 
