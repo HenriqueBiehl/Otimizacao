@@ -561,10 +561,8 @@ int main(int argc, char *const argv[]){
     melhorLista = copiaLista(candidatos);
     nodosAcessados = 0;
 
-    if(opt_d){
-        printf("Padrao: \n");
+    if(opt_d)
         comissao_padrao(candidatos, selecionados, l, 0);
-    }
 
     if(opt_f)
         comissao_sem_viabilidade(candidatos, selecionados, l, 0);
