@@ -308,7 +308,7 @@ int funcao_bound(struct listaCandidatos_t *E, struct listaCandidatos_t *F, unsig
     struct nodoLista_t *n;
 
     for(int i =0; i < l; ++i)
-        grupos[i] = 1;
+        grupos[i] = 0;
 
     for(int g = 1; g <= l; ++g){
         
@@ -318,7 +318,7 @@ int funcao_bound(struct listaCandidatos_t *E, struct listaCandidatos_t *F, unsig
         while(n != NULL && !possuiGrupo){
             for(int i = 1; i < n->grupo[0]+1 && !possuiGrupo; ++i){
                 if(n->grupo[i] == g){
-                    grupos[g-1] = 0; 
+                    grupos[g-1] = 1; 
                     possuiGrupo = 1;
                     jaTenho++;
                 }
@@ -329,6 +329,7 @@ int funcao_bound(struct listaCandidatos_t *E, struct listaCandidatos_t *F, unsig
         if(!possuiGrupo)
             numeroGruposFaltando++;
     }
+    printf("ja tenho %d\n", jaTenho);
 
     if(numeroGruposFaltando == 0)
         return E->tamanho;
@@ -359,7 +360,7 @@ int funcao_bound(struct listaCandidatos_t *E, struct listaCandidatos_t *F, unsig
     return E->tamanho + candidatosNecessarios;
 }
 
-void comissao_sem_viabilidade(struct listaCandidatos_t *C, struct listaCandidatos_t *S, unsigned int n, unsigned int l){
+void comissao_padrao_sem_viabilidade(struct listaCandidatos_t *C, struct listaCandidatos_t *S, unsigned int n, unsigned int l){
     struct nodoLista_t *x; 
     struct listaCandidatos_t *c; 
     int b; 
@@ -367,7 +368,7 @@ void comissao_sem_viabilidade(struct listaCandidatos_t *C, struct listaCandidato
     c = copiaLista(C); 
     x = removePrimeiroElemento(c);
     nodosAcessados++;
-    b = funcao_bound_professor(S, C, n);
+    b = funcao_bound(S, C, n);
     while(x != NULL){
         
         if(b > melhorLista->tamanho){
@@ -377,14 +378,13 @@ void comissao_sem_viabilidade(struct listaCandidatos_t *C, struct listaCandidato
         }
         
         insereElementoLista(S, x); 
-        comissao_sem_viabilidade(c, S, n, l+1);    
+        comissao_padrao_sem_viabilidade(c, S, n, l+1);    
         removeUltimoElementoLista(S);    
         destroiNodo(x);
         x = removePrimeiroElemento(c);
         nodosAcessados++;
 
     } 
-    destroiLista(c);
 
     if(temTodosOsGrupos(S,n)){
         if(S->tamanho < melhorLista->tamanho){
@@ -394,6 +394,8 @@ void comissao_sem_viabilidade(struct listaCandidatos_t *C, struct listaCandidato
             destroiLista(aux);
         }
     }
+
+    destroiLista(c);
 }
 
 void comissao_padrao(struct listaCandidatos_t *C, struct listaCandidatos_t *S, unsigned int n, unsigned int l){
@@ -416,7 +418,7 @@ void comissao_padrao(struct listaCandidatos_t *C, struct listaCandidatos_t *S, u
     c = copiaLista(C); 
     x = removePrimeiroElemento(c);
     nodosAcessados++;
-    b = funcao_bound(S, C, n);
+    b = funcao_bound(S, c, n);
     while(x != NULL){
         
         if(b >= melhorLista->tamanho){
@@ -435,7 +437,46 @@ void comissao_padrao(struct listaCandidatos_t *C, struct listaCandidatos_t *S, u
     destroiLista(c);
 }
 
-void comissao_branch_and_bound_professor(struct listaCandidatos_t *C, struct listaCandidatos_t *S, unsigned int n, unsigned int l){
+void comissao_professor_sem_viabilidade(struct listaCandidatos_t *C, struct listaCandidatos_t *S, unsigned int n, unsigned int l){
+
+    struct nodoLista_t *x; 
+    struct listaCandidatos_t *c; 
+    int b; 
+
+    c = copiaLista(C); 
+    x = removePrimeiroElemento(c);
+    nodosAcessados++;
+    b = funcao_bound_professor(S, C, n);
+    while(x != NULL){
+        
+        if(b >= melhorLista->tamanho){
+            destroiNodo(x);
+            destroiLista(c); 
+            return;
+        }
+        
+        insereElementoLista(S, x); 
+        comissao_professor_sem_viabilidade(c, S, n, l+1);    
+        removeUltimoElementoLista(S);    
+        destroiNodo(x);
+        x = removePrimeiroElemento(c);
+        nodosAcessados++;
+
+    } 
+
+    if(temTodosOsGrupos(S,n)){
+        if(S->tamanho < melhorLista->tamanho){
+            struct listaCandidatos_t *aux; 
+            aux = melhorLista;
+            melhorLista = copiaLista(S);
+            destroiLista(aux);
+        }
+    }
+
+    destroiLista(c);
+}
+
+void comissao_professor(struct listaCandidatos_t *C, struct listaCandidatos_t *S, unsigned int n, unsigned int l){
         
     if(temTodosOsGrupos(S,n)){
         if(S->tamanho < melhorLista->tamanho){
@@ -465,7 +506,7 @@ void comissao_branch_and_bound_professor(struct listaCandidatos_t *C, struct lis
         }
         
         insereElementoLista(S, x); 
-        comissao_branch_and_bound_professor(c, S, n, l+1);    
+        comissao_professor(c, S, n, l+1);    
         removeUltimoElementoLista(S);    
         destroiNodo(x);
         x = removePrimeiroElemento(c);
@@ -474,6 +515,7 @@ void comissao_branch_and_bound_professor(struct listaCandidatos_t *C, struct lis
     } 
     destroiLista(c);
 }
+
 
 
 void comissao_sem_otimalidade(struct listaCandidatos_t *C, struct listaCandidatos_t *S, unsigned int n, unsigned int l){
@@ -507,6 +549,35 @@ void comissao_sem_otimalidade(struct listaCandidatos_t *C, struct listaCandidato
     destroiLista(c);
 }
 
+void comissao_normal(struct listaCandidatos_t *C, struct listaCandidatos_t *S, unsigned int n, unsigned int l){
+    struct nodoLista_t *x; 
+    struct listaCandidatos_t *c; 
+
+    c = copiaLista(C); 
+    x = removePrimeiroElemento(c);
+    nodosAcessados++;
+    while(x != NULL){
+        
+        insereElementoLista(S, x); 
+        comissao_normal(c, S, n, l+1);    
+        removeUltimoElementoLista(S);    
+        destroiNodo(x);
+        x = removePrimeiroElemento(c);
+        nodosAcessados++;
+    } 
+    
+    if(temTodosOsGrupos(S,n)){
+        if(S->tamanho < melhorLista->tamanho){
+            struct listaCandidatos_t *aux; 
+            aux = melhorLista;
+            melhorLista = copiaLista(S);
+            destroiLista(aux);
+        }
+    }
+
+    destroiLista(c);
+}
+
 
 int main(int argc, char *const argv[]){
     struct listaCandidatos_t *candidatos; 
@@ -515,7 +586,7 @@ int main(int argc, char *const argv[]){
     unsigned int l, n;
     unsigned int maxGrupos;
     unsigned int *grupos;  
-    unsigned int opt, opt_a = 0, opt_o = 0, opt_f = 0, opt_d = 1; 
+    unsigned int opt, opt_a = 0, opt_o = 0, opt_f = 0; 
 
     candidatos   = criaLista();
     selecionados = criaLista();
@@ -542,7 +613,6 @@ int main(int argc, char *const argv[]){
     }
 
     while((opt = getopt(argc,argv,"ofa")) != -1) {
-        opt_d = 0;
 		switch (opt){
 			case 'o':
 				opt_o = 1;
@@ -561,17 +631,24 @@ int main(int argc, char *const argv[]){
     melhorLista = copiaLista(candidatos);
     nodosAcessados = 0;
 
-    if(opt_d)
-        comissao_padrao(candidatos, selecionados, l, 0);
-
-    if(opt_f)
-        comissao_sem_viabilidade(candidatos, selecionados, l, 0);
-    
-    if(opt_a)
-        comissao_branch_and_bound_professor(candidatos, selecionados, l, 0);
-       
-    if(opt_o)
-        comissao_sem_otimalidade(candidatos, selecionados, l, 0);
+    if(opt_f && opt_o){
+        comissao_normal(candidatos, selecionados, l, 0);
+    }
+    else if(opt_o){
+        comissao_sem_otimalidade(candidatos, selecionados,l, 0);
+    }
+    else if(opt_f){    
+        if(opt_a)
+            comissao_professor_sem_viabilidade(candidatos, selecionados, l, 0);
+        else 
+            comissao_padrao_sem_viabilidade(candidatos, selecionados, l, 0);
+    }
+    else{
+        if(opt_a)
+            comissao_professor(candidatos, selecionados, l, 0);
+        else 
+            comissao_padrao(candidatos, selecionados,l, 0);
+    }
 
     printLista(melhorLista);
     printf("Nodos acessados: %d\n", nodosAcessados);
