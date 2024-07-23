@@ -358,6 +358,14 @@ int funcao_bound_professor(struct listaCandidatos_t *E, struct listaCandidatos_t
 int funcao_bound2(struct listaCandidatos_t *E, struct listaCandidatos_t *F, unsigned int l){
     int possuiGrupo;
     struct nodoLista_t *n;
+    int grupos[l]; 
+    int jaTenho = 0;
+
+    if(E->tamanho == 0)
+        return 1;
+
+    for(int i =0; i < l; ++i)
+        grupos[i] = 0;
 
     for(int g = 1; g <= l; ++g){
         
@@ -367,17 +375,36 @@ int funcao_bound2(struct listaCandidatos_t *E, struct listaCandidatos_t *F, unsi
         while(n != NULL && !possuiGrupo){
             for(int i = 1; i < n->grupo[0]+1 && !possuiGrupo; ++i){
                 if(n->grupo[i] == g){
+                    grupos[g-1] = 1; 
                     possuiGrupo = 1;
+                    jaTenho++;
                 }
             }
             n = n->prox;
         }        
-
-        if(!possuiGrupo)
-            return E->tamanho + F->tamanho/(l - g); 
     }
-    
-    return E->tamanho;
+
+    n = F->inicio; 
+    int  checkpoint = jaTenho; 
+    while(n != NULL){
+        
+        jaTenho = checkpoint; 
+        
+        for(int g = 0; g < l; ++g){
+            for(int i = 1; i < n->grupo[0]+1  && !grupos[g]; ++i){
+                if(n->grupo[i] == g+1)
+                    jaTenho++;
+            }
+        }
+
+        if(jaTenho == l) 
+            return E->tamanho + 1; 
+
+        n = n->prox;
+    }
+
+
+    return E->tamanho + 2;
 }
 
 int calculaNecessarios(struct nodoLista_t *n, int v[], int jaTenho, int l){
@@ -426,9 +453,6 @@ int funcao_bound(struct listaCandidatos_t *E, struct listaCandidatos_t *F, unsig
     int jaTenho = 0;
     int grupos[l]; 
     struct nodoLista_t *n;
-
-    if(E->tamanho == 0)
-        return 1;
 
     for(int i =0; i < l; ++i)
         grupos[i] = 0;
@@ -558,7 +582,7 @@ void comissao_padrao(struct listaCandidatos_t *C, struct listaCandidatos_t *S, u
     int b; 
 
     c = melhoresCandidatos(S, C, n);
-    b = funcao_bound(S, c, n);
+    b = funcao_bound2(S, c, n);
     int tam = c->tamanho;
     for(int i = 0; i < tam; ++i){
         printf("Bound da chamada %d: %d\n", l, b);
