@@ -44,18 +44,16 @@ void printLista(struct listaCandidatos_t *l);
 
 int funcao_bound_professor(struct listaCandidatos_t *E, struct listaCandidatos_t *F, unsigned int l);
 
-int calculaNecessarios(struct nodoLista_t *n, int v[], int jaTenho, int l);
-
 int funcao_bound(struct listaCandidatos_t *E, struct listaCandidatos_t *F, unsigned int l);
 
-void comissao_padrao_sem_viabilidade(struct listaCandidatos_t *C, struct listaCandidatos_t *S, unsigned int n, unsigned int l);
+void comissao_padrao_sem_viabilidade(struct listaCandidatos_t *C, struct listaCandidatos_t *S, unsigned int n);
 
-void comissao_padrao(struct listaCandidatos_t *C, struct listaCandidatos_t *S, unsigned int n, unsigned int l);
+void comissao_padrao(struct listaCandidatos_t *C, struct listaCandidatos_t *S, unsigned int n);
 
-void comissao_professor_sem_viabilidade(struct listaCandidatos_t *C, struct listaCandidatos_t *S, unsigned int n, unsigned int l);
+void comissao_professor_sem_viabilidade(struct listaCandidatos_t *C, struct listaCandidatos_t *S, unsigned int n);
 
-void comissao_professor(struct listaCandidatos_t *C, struct listaCandidatos_t *S, unsigned int n, unsigned int l);
+void comissao_professor(struct listaCandidatos_t *C, struct listaCandidatos_t *S, unsigned int n);
 
-void comissao_sem_otimalidade(struct listaCandidatos_t *C, struct listaCandidatos_t *S, unsigned int n, unsigned int l);
+void comissao_sem_otimalidade(struct listaCandidatos_t *C, struct listaCandidatos_t *S, unsigned int n);
 
-void comissao_normal(struct listaCandidatos_t *C, struct listaCandidatos_t *S, unsigned int n, unsigned int l);
+void comissao_normal(struct listaCandidatos_t *C, struct listaCandidatos_t *S, unsigned int n);

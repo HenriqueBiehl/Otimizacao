@@ -63,22 +63,22 @@ int main(int argc, char *const argv[]){
 
     start = clock();
     if(opt_f && opt_o){
-        comissao_normal(candidatos, selecionados, l, 0);
+        comissao_normal(candidatos, selecionados, l);
     }
     else if(opt_o){
-        comissao_sem_otimalidade(candidatos, selecionados,l, 0);
+        comissao_sem_otimalidade(candidatos, selecionados,l);
     }
     else if(opt_f){    
         if(opt_a)
-            comissao_professor_sem_viabilidade(candidatos, selecionados, l, 0);
+            comissao_professor_sem_viabilidade(candidatos, selecionados, l);
         else 
-            comissao_padrao_sem_viabilidade(candidatos, selecionados, l, 0);
+            comissao_padrao_sem_viabilidade(candidatos, selecionados, l);
     }
     else{
         if(opt_a)
-            comissao_professor(candidatos, selecionados, l, 0);
+            comissao_professor(candidatos, selecionados, l);
         else 
-            comissao_padrao(candidatos, selecionados,l, 0);
+            comissao_padrao(candidatos, selecionados,l);
     }
     end = clock();
 
