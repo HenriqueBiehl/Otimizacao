@@ -84,8 +84,8 @@ int main(int argc, char *const argv[]){
 
     double time = (double)(end - start)/CLOCKS_PER_SEC;
     printLista(melhorLista);
-    printf("Nodos acessados: %d\n", nodosAcessados);
-    printf("Tempo gasto: %lf\n", time);
+    fprintf(stderr, "Nodos acessados: %d\n", nodosAcessados);
+    fprintf(stderr, "Tempo gasto: %lf\n", time);
     
        
     destroiLista(candidatos);

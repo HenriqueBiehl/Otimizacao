@@ -79,10 +79,6 @@ int insereElementoLista(struct listaCandidatos_t *l, struct nodoLista_t *n){
     struct nodoLista_t *aux, *anterior;
     unsigned int acheiMaximo = 0;
 
-    // printf("lista l em insere elemento lista\n");
-    // printLista(l);
-    // printf("nodo a ser inserido: %d\n", n->id);
-
     if(n == NULL)
         return 0;
 
@@ -129,9 +125,6 @@ int insereElementoLista(struct listaCandidatos_t *l, struct nodoLista_t *n){
         anterior->prox = n;
     }
 
-    //printf("%d esta recebendo %d como anterior\n", n->id, anterior->id);
-
-
     /* Checa se o elemento n é final na lista */
     if(n->prox == NULL)        
         l->fim = n; 
@@ -148,8 +141,6 @@ struct nodoLista_t *removeUltimoElementoLista(struct listaCandidatos_t *l){
     struct nodoLista_t *n; 
 
     n = l->fim; 
-    // if(n->ant == NULL)
-    //         printf(" Ant de %d é nulo k\n", n->id);
    
     if(n == NULL)
         return NULL; 
@@ -159,18 +150,11 @@ struct nodoLista_t *removeUltimoElementoLista(struct listaCandidatos_t *l){
     if(n == l->inicio)
         l->inicio = NULL; 
     else{
-        // printf("%d id \n", n->id);
-        // if(n->ant == NULL){
-        //     printf(" Ant de %d é nulo k\n", n->id);
-        //     printf("Lista no momento: \n");
-        //     printLista(l);
-        // }
         l->fim->prox = NULL;
     }
 
     l->tamanho--;
     
-    //printf(" ** removi %d **\n", n->id);
     return n;
 }
 
@@ -281,9 +265,6 @@ struct listaCandidatos_t *melhoresCandidatos(struct listaCandidatos_t *E, struct
         n = n->prox;
     }
 
-    // printf("Melhor grupo\n");
-    // printLista(m);
-
     return m;
 }
 
@@ -321,9 +302,6 @@ void printLista(struct listaCandidatos_t *l){
     n = l->inicio;
     while(n != NULL){
         printf("%d ", n->id);
-        // for(int i=1; i < n->grupo[0]+1; ++i)
-        //     printf("%d ",n->grupo[i]);
-        // printf("]\n");
         n = n->prox;
     }
     printf("\n");
@@ -355,7 +333,7 @@ int funcao_bound_professor(struct listaCandidatos_t *E, struct listaCandidatos_t
     return E->tamanho;
 }
 
-int funcao_bound2(struct listaCandidatos_t *E, struct listaCandidatos_t *F, unsigned int l){
+int funcao_bound(struct listaCandidatos_t *E, struct listaCandidatos_t *F, unsigned int l){
     int possuiGrupo;
     struct nodoLista_t *n;
     int grupos[l]; 
@@ -363,99 +341,6 @@ int funcao_bound2(struct listaCandidatos_t *E, struct listaCandidatos_t *F, unsi
 
     if(E->tamanho == 0)
         return 1;
-
-    for(int i =0; i < l; ++i)
-        grupos[i] = 0;
-
-    for(int g = 1; g <= l; ++g){
-        
-        possuiGrupo = 0; 
-        n = E->inicio; 
-        
-        while(n != NULL && !possuiGrupo){
-            for(int i = 1; i < n->grupo[0]+1 && !possuiGrupo; ++i){
-                if(n->grupo[i] == g){
-                    grupos[g-1] = 1; 
-                    possuiGrupo = 1;
-                    jaTenho++;
-                }
-            }
-            n = n->prox;
-        }        
-    }
-
-    n = F->inicio; 
-    int  checkpoint = jaTenho; 
-    while(n != NULL){
-        
-        jaTenho = checkpoint; 
-        
-        for(int g = 0; g < l; ++g){
-            for(int i = 1; i < n->grupo[0]+1  && !grupos[g]; ++i){
-                if(n->grupo[i] == g+1)
-                    jaTenho++;
-            }
-        }
-
-        if(jaTenho == l) 
-            return E->tamanho + 1; 
-
-        n = n->prox;
-    }
-
-
-    return E->tamanho + 2;
-}
-
-int calculaNecessarios(struct nodoLista_t *n, int v[], int jaTenho, int l){
-    int candidatosNecessarios = 0; 
-    int aux; 
-    int grupos[l]; 
-
-    for(int i = 0; i < l; ++i)
-        grupos[i] = v[i];
-    
-    //printf("antes de ver já tenho %d\n", jaTenho);
-    while(n != NULL && jaTenho < l){
-        
-      /*  printf("Quem ja tenho: ");
-        for(int i = 0; i < l; ++i)
-        printf("%d:%d ", i+1, grupos[i]); */
-
-        aux = jaTenho; 
-        candidatosNecessarios++; 
-
-        for(int i = 0; i < l; ++i){
-        //    printf("vou avaliar grupo %d em %d\n", i+1, n->id);
-            for(int j = 1; j < n->grupo[0]+1 && !grupos[i]; ++j){
-                if(n->grupo[j] == i+1){
-          //          printf("    %d tem %d\n", n->id, i+1);
-                    grupos[i] = 1;
-                    jaTenho++; 
-            //        printf("    vou precisar de %d\n    ja tenho = %d\n     grupo %d = %d\n", n->id, jaTenho, i+1, grupos[i]);
-                }
-            }
-        }
-
-        if(aux == jaTenho)
-            candidatosNecessarios--;
-        n = n->prox; 
-    }
-    
-    if(jaTenho < l)
-        return jaTenho;
-    return candidatosNecessarios;
-}
-
-int funcao_bound(struct listaCandidatos_t *E, struct listaCandidatos_t *F, unsigned int l){
-    int possuiGrupo;
-    int numeroGruposFaltando = 0;
-    int jaTenho = 0;
-    int grupos[l]; 
-    struct nodoLista_t *n;
-
-    for(int i =0; i < l; ++i)
-        grupos[i] = 0;
 
     for(int g = 1; g <= l; ++g){
         
@@ -474,53 +359,32 @@ int funcao_bound(struct listaCandidatos_t *E, struct listaCandidatos_t *F, unsig
         }        
 
         if(!possuiGrupo)
-            numeroGruposFaltando++;
+            grupos[g-1] = 0;
     }
 
-    if(numeroGruposFaltando == 0){
-        return E->tamanho;
-    }
-
-    int candidatosNecessarios = 0; 
-    struct nodoLista_t *melhor = NULL; 
-    int qtd_n, melhor_qtd;
-    int aux; 
-    
-    for(int j = 0; j < F->tamanho && jaTenho < l; ++j){        
-        n = F->inicio;
-        melhor = NULL; 
-        melhor_qtd = 0;
-
-        while(n != NULL){
-            qtd_n = 0;
-            for(int i = 0; i < l; ++i){
-                for(int j = 1; j < n->grupo[0]+1 && !grupos[i]; ++j){
-                    if(n->grupo[j] == i+1){
-                         qtd_n++;
-                    }
-                }
-            }
-
-            if(qtd_n > melhor_qtd){
-                melhor = n; 
-                melhor_qtd = qtd_n;
-            }
-
-            n = n->prox;
-        }
+    n = F->fim; 
+    int  checkpoint = jaTenho; 
+    while(n != NULL){
         
-        for(int k = 1; k < melhor->grupo[0]+1; ++k){
-            if(!grupos[k-1])
-                jaTenho++; 
-            grupos[k-1] = 1;
+        jaTenho = checkpoint; 
+        
+        for(int g = 0; g < l; ++g){
+            for(int i = 1; i < n->grupo[0]+1  && !grupos[g]; ++i){
+                if(n->grupo[i] == g+1)
+                    jaTenho++;
+            }
         }
 
-        candidatosNecessarios++;
-    }
-    
+        if(jaTenho == l) 
+            return E->tamanho + 1; 
 
-    return E->tamanho + candidatosNecessarios;
+        n = n->ant;
+    }
+
+
+    return E->tamanho + 2;
 }
+
 
 void comissao_padrao_sem_viabilidade(struct listaCandidatos_t *C, struct listaCandidatos_t *S, unsigned int n, unsigned int l){
     struct nodoLista_t *x; 
@@ -559,13 +423,6 @@ void comissao_padrao_sem_viabilidade(struct listaCandidatos_t *C, struct listaCa
 
 void comissao_padrao(struct listaCandidatos_t *C, struct listaCandidatos_t *S, unsigned int n, unsigned int l){
 
-    printf("***** Chamada %d *****\n",l);
-    printf("Lista Candidatos: \n");
-    printLista(C);
-    printf("Lista Selecionados: \n");
-    printLista(S);
-    printf("**********************\n");
-
     if(temTodosOsGrupos(S,n)){
         if(S->tamanho < melhorLista->tamanho){
             struct listaCandidatos_t *aux; 
@@ -582,11 +439,10 @@ void comissao_padrao(struct listaCandidatos_t *C, struct listaCandidatos_t *S, u
     int b; 
 
     c = melhoresCandidatos(S, C, n);
-    b = funcao_bound2(S, c, n);
+    b = funcao_bound(S, c, n);
     int tam = c->tamanho;
     for(int i = 0; i < tam; ++i){
-        printf("Bound da chamada %d: %d\n", l, b);
-        if(b > melhorLista->tamanho){
+        if(b >= melhorLista->tamanho){
             destroiLista(c); 
             return;
         }
@@ -600,7 +456,6 @@ void comissao_padrao(struct listaCandidatos_t *C, struct listaCandidatos_t *S, u
     } 
 
     destroiLista(c);
-    //printf("Cheguei no fim\n");
 }
 
 void comissao_professor_sem_viabilidade(struct listaCandidatos_t *C, struct listaCandidatos_t *S, unsigned int n, unsigned int l){
@@ -661,7 +516,7 @@ void comissao_professor(struct listaCandidatos_t *C, struct listaCandidatos_t *S
     int tam = c->tamanho;
     for(int i = 0; i < tam; ++i){
 
-        if(b > melhorLista->tamanho){
+        if(b >= melhorLista->tamanho){
             destroiLista(c); 
             return;
         }
@@ -711,12 +566,6 @@ void comissao_sem_otimalidade(struct listaCandidatos_t *C, struct listaCandidato
 void comissao_normal(struct listaCandidatos_t *C, struct listaCandidatos_t *S, unsigned int n, unsigned int l){
     struct nodoLista_t *x; 
     struct listaCandidatos_t *c; 
-    // printf("***** Chamada %d *****\n",l);
-    // printf("Lista Candidatos: \n");
-    // printLista(C);
-    // printf("Lista Selecionados: \n");
-    // printLista(S);
-    // printf("**********************\n");
     
     c = melhoresCandidatos(S,C, n); 
     int tam = c->tamanho;
@@ -727,7 +576,6 @@ void comissao_normal(struct listaCandidatos_t *C, struct listaCandidatos_t *S, u
         comissao_normal(c, S, n, l+1);    
         removeUltimoElementoLista(S);    
         destroiNodo(x);
-        //printf("chamada %d -> i %d\n", l, i);
     } 
     
     if(temTodosOsGrupos(S,n)){
@@ -739,6 +587,5 @@ void comissao_normal(struct listaCandidatos_t *C, struct listaCandidatos_t *S, u
         }
     }
 
-    //printf("voltando na chamada %d\n", l);
     destroiLista(c);
 }
