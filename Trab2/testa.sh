@@ -13,7 +13,7 @@ if [ -d "resultados" ]; then
 fi
 
 mkdir resultados
-lista=$(ls -v $pasta/t*.txt)
+lista=$(ls -v $pasta/*)
 
 for t in $lista; do	
 	echo "Funcao Padrao" >> "res${count}.txt" 

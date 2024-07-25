@@ -420,6 +420,10 @@ int funcao_bound(struct listaCandidatos_t *E, struct listaCandidatos_t *F, unsig
         if(!possuiGrupo)
             grupos[g-1] = 0;
     }
+
+    if(jaTenho == l)
+        return E->tamanho;
+
     //1   2 4 7
     n = F->inicio; 
     int  checkpoint = jaTenho; 
@@ -436,10 +440,7 @@ int funcao_bound(struct listaCandidatos_t *E, struct listaCandidatos_t *F, unsig
         }
 
         if(jaTenho == l){
-            /*if(nodosAteMelhor > 0)
-                return E->tamanho + nodosAteMelhor;
-            else*/ 
-                return E->tamanho + 1; 
+            return E->tamanho + 1; 
         }
 
         nodosAteMelhor++;
@@ -509,7 +510,7 @@ void comissao_padrao(struct listaCandidatos_t *C, struct listaCandidatos_t *S, u
     b = funcao_bound(S, c, n);
     int tam = c->tamanho;
     for(int i = 0; i < tam; ++i){
-        if(b >= melhorLista->tamanho){
+        if(b > melhorLista->tamanho){
             destroiLista(c); 
             return;
         }
@@ -583,7 +584,7 @@ void comissao_professor(struct listaCandidatos_t *C, struct listaCandidatos_t *S
     int tam = c->tamanho;
     for(int i = 0; i < tam; ++i){
 
-        if(b >= melhorLista->tamanho){
+        if(b > melhorLista->tamanho){
             destroiLista(c); 
             return;
         }
