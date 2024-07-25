@@ -104,7 +104,6 @@ int insereElementoLista(struct listaCandidatos_t *l, struct nodoLista_t *n){
         if(aux->id < n->id){
             anterior = aux;             
             aux = aux->prox; 
-
         }
         else 
             acheiMaximo = 1;
@@ -136,6 +135,66 @@ int insereElementoLista(struct listaCandidatos_t *l, struct nodoLista_t *n){
     return 1;
 }
 
+int insereElementoListaPorGrupo(struct listaCandidatos_t *l, struct nodoLista_t *n){
+    struct nodoLista_t *aux, *anterior;
+    unsigned int acheiMaximo = 0;
+
+    if(n == NULL)
+        return 0;
+
+    n->ant = NULL;
+    n->prox = NULL;
+
+    /* Checa se n será inserido em uma lista vazia*/
+    if(l->inicio == NULL){
+        l->inicio = n; 
+        l->fim    = n; 
+        l->tamanho++;
+        return 1;
+    }
+
+    aux = l->inicio; 
+    anterior = NULL;
+
+    while(aux != NULL && !acheiMaximo){
+       
+        if(aux->id == n->id)
+            return 0;
+       
+        if(aux->grupo[0] > n->grupo[0]){
+            printf("Aux grupo tem %d e n grupo tem %d\n", aux->grupo[0], n->grupo[0]);
+            anterior = aux;             
+            aux = aux->prox; 
+        }
+        else 
+            acheiMaximo = 1;
+    }
+
+    n->ant  = anterior;
+    
+    /* Checa se o elemento não deve ser inserido no inicio da lista em uma lista sem elementos*/
+    if(anterior == NULL){
+        l->inicio = n; 
+        aux->ant = n; 
+        n->prox = aux;
+        l->tamanho++;
+        return 1;
+    }
+    else {
+        n->prox = anterior->prox; 
+        anterior->prox = n;
+    }
+
+    /* Checa se o elemento n é final na lista */
+    if(n->prox == NULL)        
+        l->fim = n; 
+    else 
+        anterior->prox->ant = n ;
+
+    l->tamanho++;
+
+    return 1;
+}
 
 struct nodoLista_t *removeUltimoElementoLista(struct listaCandidatos_t *l){
     struct nodoLista_t *n; 
@@ -361,9 +420,10 @@ int funcao_bound(struct listaCandidatos_t *E, struct listaCandidatos_t *F, unsig
         if(!possuiGrupo)
             grupos[g-1] = 0;
     }
-
-    n = F->fim; 
+    //1   2 4 7
+    n = F->inicio; 
     int  checkpoint = jaTenho; 
+    int nodosAteMelhor = 0;
     while(n != NULL){
         
         jaTenho = checkpoint; 
@@ -375,10 +435,15 @@ int funcao_bound(struct listaCandidatos_t *E, struct listaCandidatos_t *F, unsig
             }
         }
 
-        if(jaTenho == l) 
-            return E->tamanho + 1; 
+        if(jaTenho == l){
+            /*if(nodosAteMelhor > 0)
+                return E->tamanho + nodosAteMelhor;
+            else*/ 
+                return E->tamanho + 1; 
+        }
 
-        n = n->ant;
+        nodosAteMelhor++;
+        n = n->prox;
     }
 
 
@@ -422,6 +487,8 @@ void comissao_padrao_sem_viabilidade(struct listaCandidatos_t *C, struct listaCa
 }
 
 void comissao_padrao(struct listaCandidatos_t *C, struct listaCandidatos_t *S, unsigned int n){
+
+    // printLista(C);
 
     if(temTodosOsGrupos(S,n)){
         if(S->tamanho < melhorLista->tamanho){
