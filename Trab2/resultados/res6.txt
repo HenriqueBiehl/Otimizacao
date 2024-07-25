@@ -1,0 +1,30 @@
+Funcao Padrao
+Nodos acessados: 9
+Tempo gasto: 0.000047
+1 2 4 
+
+Função Padrao Sem corte de viabilidade
+Nodos acessados: 20
+Tempo gasto: 0.000073
+1 2 4 
+
+Funcao Professor
+Nodos acessados: 18
+Tempo gasto: 0.000053
+1 2 4 
+
+Funcao Professor sem corte de viabilidade
+Nodos acessados: 18
+Tempo gasto: 0.000053
+1 2 4 
+
+Funcao sem corte de otimalidade
+Nodos acessados: 27
+Tempo gasto: 0.000056
+1 2 4 
+
+Funcao normal
+Nodos acessados: 27
+Tempo gasto: 0.000057
+1 2 4 
+

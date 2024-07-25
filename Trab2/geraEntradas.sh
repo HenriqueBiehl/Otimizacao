@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # Número máximo de valores de l e n
-MAX_L=25
-MAX_N=50
+MAX_N=$1
+MAX_L=$2
 
 # Função para gerar um número aleatório entre 1 e MAX_L
 generate_random_l() {
@@ -15,7 +15,7 @@ generate_random_n() {
 }
 
 # Função para gerar um número aleatório único dentro do intervalo [1, $l]
-# Evita repetições dentro do mesmo conjunto
+# Evita repetições dentro do mesmo conjuntoz
 generate_unique_random() {
     local l=$1
     local used=()
@@ -36,9 +36,12 @@ if [ -d "testes_script" ]; then
 fi
 
 mkdir testes_script
+MAX_D=$1
+MAX_N=$2
+MAX_L=$3
 
 # Loop para gerar até 50 entradas para n
-for (( i=1; i<=$MAX_N; i++ )); do
+for (( i=0; i<$MAX_D; i++ )); do
     n=$(generate_random_n)
     l=$(generate_random_l)
     
