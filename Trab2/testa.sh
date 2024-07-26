@@ -16,6 +16,7 @@ mkdir resultados
 lista=$(ls -v $pasta/*)
 
 for t in $lista; do	
+	echo "Realizando teste ${count}"
 	echo "Funcao Padrao" >> "res${count}.txt" 
 	./comissao < "$t" >> "res${count}.txt" 2>&1
 	echo "" >> "res${count}.txt"
@@ -36,6 +37,7 @@ for t in $lista; do
     echo "" >> "res${count}.txt"
 
 	mv "res${count}.txt" resultados	
+	echo "Teste ${count} feito"
     	count=$((count + 1))
 done
 
